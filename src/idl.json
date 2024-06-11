@@ -1,0 +1,8 @@
+
+
+{"version":"0.1.0","name":"voting_dapp","instructions":[{"name":"initPost","accounts":[{"name":"postAccount","isMut":true,"isSigner":true},{"name":"authority","isMut":true,"isSigner":true},{"name":"systemProgram","isMut":false,"isSigner":false},{"name":"clock","isMut":false,"isSigner":false}],"args":[{"name":"name","type":"string"}]},{"name":"createComment","accounts":[{"name":"commentAccount","isMut":true,"isSigner":true},{"name":"postAccount","isMut":true,"isSigner":false},{"name":"authority","isMut":true,"isSigner":true},{"name":"systemProgram","isMut":false,"isSigner":false},{"name":"clock","isMut":false,"isSigner":false}],"args":[{"name":"content","type":"string"}]},{"name":"votePost","accounts":[{"name":"postAccount","isMut":true,"isSigner":false}],"args":[]}],"accounts":[{"name":"PostAccount","type":{"kind":"struct","fields":[{"name":"name","type":"string"},{"name":"authority","type":"publicKey"},{"name":"voteCount","type":"u8"},{"name":"commentCount","type":"u8"},{"name":"timestamp","type":"i64"}]}},{"name":"CommentAccount","type":{"kind":"struct","fields":[{"name":"name","type":"string"},{"name":"user","type":"publicKey"},{"name":"content","type":"string"},{"name":"timestamp","type":"i64"},{"name":"id","type":"publicKey"}]}}
+],
+"metadata":{
+    "address": "6jMfnKUS87gQncgcsoPqtXGUz8nxAXDu49btxH4CPfs8"
+}
+}
