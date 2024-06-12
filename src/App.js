@@ -9,7 +9,10 @@ import { PublicKey, SystemProgram, Connection, clusterApiUrl } from "@solana/web
 import { Program, AnchorProvider, web3 } from '@project-serum/anchor';
 
 window.Buffer = Buffer;
-const network = 'http://localhost:8899' //clusterApiUrl('');
+//const network = 'http://localhost:8899';
+
+const network = clusterApiUrl('devnet');
+
 
 function App() {
 
@@ -51,6 +54,8 @@ function App() {
       console.log(error);
     }
   }
+  const [isLoading, setIsLoading] = useState(false);
+
   const getProvider = () => {
     const connection = new Connection(network, opts.preflightCommitment);
     const provider = new AnchorProvider(
@@ -158,33 +163,43 @@ function App() {
   };
 
   const createPost = async (name) => {
+    if (isLoading) {
+      console.log("Transaction already in progress. Please wait.");
+      return;
+    }
+  
     try {
-
       if (!name || name.trim() === "") {
         console.log("Content is empty. Topic not created.");
         return;
       }
-        const provider = getProvider();
-        const program = await createCustomProgram();
-
-        const postAccount = web3.Keypair.generate();
-
-        await program.rpc.initPost(name, {
-            accounts: {
-                postAccount: postAccount.publicKey,
-                authority: provider.wallet.publicKey,
-                systemProgram: SystemProgram.programId,
-                clock: web3.SYSVAR_CLOCK_PUBKEY,
-            },
-            signers: [postAccount],
-        });
-        postList();
-        setTopicInput("");
-        console.log("Created a new PostAccount w/ address:", postAccount.publicKey.toString());
+  
+      setIsLoading(true);  // Set loading state to true at the beginning of the transaction
+  
+      const provider = getProvider();
+      const program = await createCustomProgram();
+      const postAccount = web3.Keypair.generate();
+  
+      await program.rpc.initPost(name, {
+        accounts: {
+          postAccount: postAccount.publicKey,
+          authority: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+          clock: web3.SYSVAR_CLOCK_PUBKEY,
+        },
+        signers: [postAccount],
+      });
+  
+      postList();
+      setTopicInput("");
+      console.log("Created a new PostAccount w/ address:", postAccount.publicKey.toString());
     } catch (error) {
-        console.log("Error in creating PostAccount: ", error);
+      console.log("Error in creating PostAccount: ", error);
+    } finally {
+      setIsLoading(false);  // Reset loading state to false after the transaction is complete
     }
-}
+  };
+  
 
 const votePost = async () => {
   try {
@@ -221,26 +236,21 @@ const votePost = async () => {
     </button>
 
   );
+
   const disconnectWallet = async () => {
     try {
       if (window?.solana?.isPhantom) {
         // Check if the wallet is connected
         if (window.solana.publicKey) {
-          console.log("Attempting to disconnect from Phantom wallet...");
-          
           // Disconnect from the wallet
-          if (typeof window.solana.disconnect === 'function') {
-            await window.solana.disconnect();
+          await window.solana.disconnect();
   
-            // Clear wallet-related state
-            setWalletAddress(null);
-            setBalance(null);
+          // Clear wallet-related state
+          setWalletAddress(null);
+          setBalance(null);
   
-            // Log a message for successful disconnection
-            console.log("Disconnected from Phantom wallet.");
-          } else {
-            console.error("window.solana.disconnect is not a function");
-          }
+          // Log a message for successful disconnection
+          console.log("Disconnected from Phantom wallet.");
         } else {
           // Wallet is already disconnected
           console.log("Phantom wallet is already disconnected.");
@@ -252,7 +262,7 @@ const votePost = async () => {
       console.error("Error disconnecting Phantom wallet:", error);
     }
   };
-  
+
   useEffect(() => {
 
       if (walletAddress) {
@@ -364,7 +374,7 @@ const renderModal1 = () => {
           {searchInput2}
         </div>
         <div className="button1-container">
-          <button className="hermi123" onClick={() => createPost(topicInput)}>Post</button>
+        <button className="hermi123" onClick={() => createPost(topicInput)} disabled={isLoading}>{isLoading ? "Posting..." : "Post"}</button>
         </div>
       </Modal.Body>
     </Modal>
